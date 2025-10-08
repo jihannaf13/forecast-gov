@@ -1,0 +1,89 @@
+graph TB
+    %% Data Sources
+    subgraph "📊 Data Sources"
+        A[BPS Historical Data<br/>2018-2024<br/>Rice Production]
+        B[CSV Files<br/>Provincial Data<br/>39 Provinces]
+    end
+    
+    %% Data Processing Pipeline
+    subgraph "🔄 Data Processing Pipeline"
+        C[Data Ingestion<br/>pandas.read_csv]
+        D[Data Cleaning<br/>Handle Missing Values<br/>Standardize Formats]
+        E[Feature Engineering<br/>Growth Rates<br/>Time Series Features]
+        F[Data Validation<br/>Quality Checks<br/>Outlier Detection]
+        G[Data Export<br/>Multiple Formats<br/>CSV/JSON]
+    end
+    
+    %% ML Pipeline
+    subgraph "🤖 ML Pipeline"
+        H[Model Training<br/>Multiple Algorithms]
+        I[Model Evaluation<br/>Cross-validation<br/>Performance Metrics]
+        J[Model Selection<br/>Best Performer<br/>Ensemble Methods]
+        K[Model Persistence<br/>Save Models<br/>joblib/pickle]
+    end
+    
+    %% Forecasting Models
+    subgraph "📈 Forecasting Models"
+        L[Linear Regression<br/>Trend Analysis]
+        M[Polynomial Regression<br/>Non-linear Trends]
+        N[Exponential Smoothing<br/>Time Series]
+        O[Ensemble Model<br/>Weighted Average]
+    end
+    
+    %% Dashboard & Monitoring
+    subgraph "📱 Dashboard & Monitoring"
+        P[Streamlit Dashboard<br/>Interactive UI]
+        Q[Real-time Monitoring<br/>Production Metrics]
+        R[Visualization<br/>Plotly Charts<br/>Interactive Maps]
+        S[Alert System<br/>Threshold Monitoring]
+        T[Export Tools<br/>Reports & Data]
+    end
+    
+    %% Storage & Output
+    subgraph "💾 Storage & Output"
+        U[Processed Data<br/>CSV Files]
+        V[Model Files<br/>PKL/JSON]
+        W[Forecast Results<br/>JSON Format]
+        X[Performance Metrics<br/>Model Evaluation]
+    end
+    
+    %% Flow connections
+    A --> C
+    B --> C
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    G --> U
+    
+    U --> H
+    H --> L
+    H --> M
+    H --> N
+    L --> O
+    M --> O
+    N --> O
+    
+    H --> I
+    I --> J
+    J --> K
+    K --> V
+    
+    O --> W
+    I --> X
+    
+    U --> P
+    V --> P
+    W --> P
+    X --> P
+    
+    P --> Q
+    P --> R
+    P --> S
+    P --> T
+    
+    class A,B dataSource
+    class C,D,E,F,G processing
+    class H,I,J,K,L,M,N,O model
+    class P,Q,R,S,T dashboard
+    class U,V,W,X storage

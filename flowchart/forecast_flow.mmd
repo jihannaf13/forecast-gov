@@ -1,0 +1,90 @@
+flowchart TD
+    %% Data Preprocessing Stage
+    subgraph "Data Preprocessing"
+        A1[Raw CSV Files<br/>2018-2024<br/>39 Provinces]
+        A2[Load & Combine<br/>All Years Data]
+        A3[Data Cleaning<br/>Remove Missing Values<br/>Standardize Names]
+        A4[Feature Engineering<br/>Growth Rates<br/>Derived Metrics]
+        A5[Export Processed Data<br/>national_timeseries.csv<br/>ml_features_dataset.csv]
+    end
+    
+    %% Forecasting System Initialization
+    subgraph "Forecasting System"
+        B1[Initialize Forecaster<br/>RiceProductionForecaster]
+        B2[Load Processed Data<br/>National Time Series<br/>ML Features Dataset]
+        B3[Prepare Target Variable<br/>Produksi_ton Production]
+    end
+    
+    %% Individual Forecasting Models
+    subgraph "Individual Models"
+        C1[Linear Trend Model<br/>sklearn.LinearRegression<br/>Simple Trend Analysis]
+        C2[Polynomial Model<br/>numpy.polyfit degree=2<br/>Non-linear Trends]
+        C3[Exponential Smoothing<br/>Alpha = 0.3<br/>Time Series Smoothing]
+    end
+    
+    %% Model Training & Evaluation
+    subgraph "Model Training"
+        D1[Train Linear Model<br/>Years vs Production]
+        D2[Train Polynomial Model<br/>Degree 2 Fitting]
+        D3[Apply Exp Smoothing<br/>Historical Smoothing]
+        D4[Calculate Metrics<br/>R², RMSE, MAE<br/>for Each Model]
+    end
+    
+    %% Ensemble Method
+    subgraph "Ensemble Forecasting"
+        E1[Weight Calculation<br/>Based on R² Scores]
+        E2[Weighted Average<br/>Combine All Models]
+        E3[Generate Predictions<br/>3 Years Ahead<br/>2025, 2026, 2027]
+        E4[Ensemble Evaluation<br/>Final Performance Metrics]
+    end
+    
+    %% Output & Visualization
+    subgraph "Output & Storage"
+        F1[Save Models<br/>linear_trend_Produksi_ton.pkl<br/>poly_trend_Produksi_ton_deg2.pkl]
+        F2[Export Forecasts<br/>forecasts.json<br/>All Predictions & Metrics]
+        F3[Generate Visualizations<br/>Historical vs Forecast<br/>Model Comparison Charts]
+        F4[Performance Report<br/>model_performance.json<br/>Accuracy Metrics]
+    end
+    
+    %% Dashboard Integration
+    subgraph "Dashboard Integration"
+        G1[Load Forecast Results<br/>JSON Files]
+        G2[Real-time Monitoring<br/>Streamlit Dashboard]
+        G3[Interactive Charts<br/>Plotly Visualizations]
+    end
+    
+    %% Flow connections
+    A1 --> A2
+    A2 --> A3
+    A3 --> A4
+    A4 --> A5
+    
+    A5 --> B1
+    B1 --> B2
+    B2 --> B3
+    
+    B3 --> C1
+    B3 --> C2
+    B3 --> C3
+    
+    C1 --> D1
+    C2 --> D2
+    C3 --> D3
+    D1 --> D4
+    D2 --> D4
+    D3 --> D4
+    
+    D4 --> E1
+    E1 --> E2
+    E2 --> E3
+    E3 --> E4
+    
+    E4 --> F1
+    E4 --> F2
+    E4 --> F3
+    E4 --> F4
+    
+    F2 --> G1
+    F4 --> G1
+    G1 --> G2
+    G2 --> G3

@@ -1,0 +1,41 @@
+graph LR
+    subgraph "Data Input"
+        A[Historical Production Data]
+        B[Weather Patterns]
+        C[Economic Factors]
+    end
+    
+    subgraph "AI Processing"
+        D[Feature Engineering]
+        E[Model Training]
+        F[Prediction Generation]
+    end
+    
+    subgraph "Insights"
+        G[Province-level Forecasts]
+        H[Risk Assessment]
+        I[Optimization Recommendations]
+    end
+    
+    subgraph "Stakeholder Benefits"
+        J[Government<br/>Policy Planning]
+        K[Cooperatives<br/>Resource Allocation]
+        L[Agri-tech Companies<br/>Market Strategy]
+        M[Farmers<br/>Crop Planning]
+    end
+    
+    A --> D
+    B --> D
+    C --> D
+    D --> E
+    E --> F
+    F --> G
+    F --> H
+    F --> I
+    G --> J
+    G --> K
+    G --> L
+    H --> J
+    H --> K
+    I --> M
+    I --> L

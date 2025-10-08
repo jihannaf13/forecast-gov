@@ -1,0 +1,77 @@
+graph TB
+    subgraph "Data Sources"
+        A[BPS Historical Data<br/>2015-2024]
+        B[Weather APIs<br/>BMKG/OpenWeather]
+        C[Economic Indicators<br/>Bank Indonesia]
+        D[Agricultural Policies<br/>Ministry of Agriculture]
+    end
+    
+    subgraph "Data Pipeline"
+        E[Data Ingestion<br/>Apache Airflow]
+        F[Data Cleaning<br/>Pandas/Dask]
+        G[Feature Engineering<br/>Time Series Features]
+        H[Data Validation<br/>Great Expectations]
+    end
+    
+    subgraph "ML Pipeline"
+        I[Model Training<br/>MLflow]
+        J[Model Registry<br/>Version Control]
+        K[Model Evaluation<br/>Cross-validation]
+        L[Hyperparameter Tuning<br/>Optuna]
+    end
+    
+    subgraph "Models"
+        M[ARIMA/SARIMA<br/>Time Series]
+        N[XGBoost<br/>Gradient Boosting]
+        O[LSTM<br/>Deep Learning]
+        P[Prophet<br/>Trend Analysis]
+        Q[Ensemble Model<br/>Weighted Average]
+    end
+    
+    subgraph "API Layer"
+        R[FastAPI<br/>Model Serving]
+        S[Authentication<br/>JWT Tokens]
+        T[Rate Limiting<br/>Redis]
+    end
+    
+    subgraph "Frontend"
+        U[React Dashboard<br/>Interactive Maps]
+        V[Visualization<br/>Plotly/D3.js]
+        W[Export Tools<br/>PDF/Excel Reports]
+    end
+    
+    subgraph "Infrastructure"
+        X[PostgreSQL<br/>Data Storage]
+        Y[Redis<br/>Caching]
+        Z[Docker<br/>Containerization]
+        AA[AWS/GCP<br/>Cloud Deployment]
+    end
+    
+    A --> E
+    B --> E
+    C --> E
+    D --> E
+    E --> F
+    F --> G
+    G --> H
+    H --> I
+    I --> J
+    J --> K
+    K --> L
+    L --> M
+    L --> N
+    L --> O
+    L --> P
+    M --> Q
+    N --> Q
+    O --> Q
+    P --> Q
+    Q --> R
+    R --> S
+    S --> T
+    T --> U
+    U --> V
+    V --> W
+    X --> R
+    Y --> R
+    Z --> AA
