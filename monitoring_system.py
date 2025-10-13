@@ -768,6 +768,98 @@ class RiceProductionMonitor:
         for i, rec in enumerate(recommendations, 1):
             st.markdown(f"{i}. {rec}")
 
+        # Rice Allocation Plan (Fair Distribution)
+        st.subheader("Rice Allocation Plan (Fair Distribution)")
+        try:
+            # Ensure we have at least two years of provincial data
+            years = sorted(self.provincial_data['Year'].dropna().unique())
+            if len(years) < 2:
+                st.info("Insufficient provincial time series (need at least 2 years) to propose inter-province allocation.")
+                return
+            
+            latest_year = years[-1]
+            prev_year = years[-2]
+            
+            latest_df = self.provincial_data[self.provincial_data['Year'] == latest_year][['Province', 'Produksi_ton']].rename(columns={'Produksi_ton': 'latest_production'})
+            prev_df = self.provincial_data[self.provincial_data['Year'] == prev_year][['Province', 'Produksi_ton']].rename(columns={'Produksi_ton': 'prev_production'})
+            
+            # Merge only provinces present in both years to avoid NaN issues
+            yoy = latest_df.merge(prev_df, on='Province', how='inner')
+            yoy['change_ton'] = yoy['latest_production'] - yoy['prev_production']
+            
+            # Deficits: negative change (needs rice), Surpluses: positive change (can provide rice)
+            deficits = yoy[yoy['change_ton'] < 0].copy()
+            surpluses = yoy[yoy['change_ton'] > 0].copy()
+            
+            if deficits.empty:
+                st.info("No provinces show a year-over-year production decline. No deficit-based allocation needed.")
+                return
+            if surpluses.empty:
+                st.info("No provinces show a year-over-year production increase. No surplus available for allocation.")
+                return
+            
+            deficits['deficit_ton'] = (-deficits['change_ton']).astype(float)
+            surpluses['surplus_ton'] = (surpluses['change_ton']).astype(float)
+            
+            total_deficit = deficits['deficit_ton'].sum()
+            total_surplus = surpluses['surplus_ton'].sum()
+            available_for_allocation = min(total_surplus, total_deficit)
+            
+            # Fair allocation: proportional to each province's share of total deficit
+            deficits['allocation_share'] = deficits['deficit_ton'] / total_deficit
+            deficits['allocation_ton'] = (deficits['allocation_share'] * available_for_allocation).round(0)
+            deficits['allocation_share_pct'] = (deficits['allocation_share'] * 100).round(2)
+            
+            # Recommended outflows from surplus provinces: proportional to surplus share, capped by available_for_allocation
+            surpluses['outflow_share'] = surpluses['surplus_ton'] / total_surplus
+            surpluses['outflow_ton'] = (surpluses['outflow_share'] * available_for_allocation).round(0)
+            surpluses['outflow_share_pct'] = (surpluses['outflow_share'] * 100).round(2)
+            
+            # Display summary
+            st.markdown(f"• Latest year: {latest_year}, Previous year: {prev_year}")
+            st.markdown(f"• Total deficit: {int(total_deficit):,} tons")
+            st.markdown(f"• Total surplus: {int(total_surplus):,} tons")
+            st.markdown(f"• Proposed allocation volume: {int(available_for_allocation):,} tons (capped by min(surplus, deficit))")
+            
+            # Show allocation to deficit provinces
+            alloc_view = deficits[['Province', 'prev_production', 'latest_production', 'deficit_ton', 'allocation_ton', 'allocation_share_pct']].sort_values('allocation_ton', ascending=False)
+            alloc_view.columns = ['Province', 'Prev Prod (ton)', 'Latest Prod (ton)', 'Deficit (ton)', 'Allocation (ton)', 'Allocation Share (%)']
+            st.markdown("Recommended Allocation to Provinces (by need):")
+            st.dataframe(
+                alloc_view.style.format({
+                    'Prev Prod (ton)': '{:,.0f}',
+                    'Latest Prod (ton)': '{:,.0f}',
+                    'Deficit (ton)': '{:,.0f}',
+                    'Allocation (ton)': '{:,.0f}',
+                    'Allocation Share (%)': '{:.2f}%'
+                }),
+                width='stretch'
+            )
+            
+            # Show recommended outflows from surplus provinces
+            outflow_view = surpluses[['Province', 'prev_production', 'latest_production', 'surplus_ton', 'outflow_ton', 'outflow_share_pct']].sort_values('outflow_ton', ascending=False)
+            outflow_view.columns = ['Province', 'Prev Prod (ton)', 'Latest Prod (ton)', 'Surplus (ton)', 'Recommended Outflow (ton)', 'Outflow Share (%)']
+            st.markdown("Recommended Outflows from Surplus Provinces:")
+            st.dataframe(
+                outflow_view.style.format({
+                    'Prev Prod (ton)': '{:,.0f}',
+                    'Latest Prod (ton)': '{:,.0f}',
+                    'Surplus (ton)': '{:,.0f}',
+                    'Recommended Outflow (ton)': '{:,.0f}',
+                    'Outflow Share (%)': '{:.2f}%'
+                }),
+                width='stretch'
+            )
+            
+            # Guidance text
+            st.markdown(
+                "- Allocation is calculated fairly, proportional to each deficit province’s share of total deficit, "
+                "and outflows are proportional to surplus capacity. "
+                "Adjust logistically for transportation costs, storage, and regional priorities."
+            )
+        except Exception as e:
+            st.warning(f"Could not compute fair allocation due to an error: {e}")
+
 def main():
     """Main Streamlit application"""
     
