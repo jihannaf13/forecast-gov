@@ -1,4 +1,6 @@
 data/
+draft/
 models/
 processed_data/
 *.png
+__pycache__/
