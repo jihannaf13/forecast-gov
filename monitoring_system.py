@@ -859,6 +859,68 @@ class RiceProductionMonitor:
             )
         except Exception as e:
             st.warning(f"Could not compute fair allocation due to an error: {e}")
+            
+    def create_developer_dashboard(self):
+        """Developer view: model metrics, forecast internals, and raw data access"""
+        st.header("Developer View")
+        
+        dev_tab1, dev_tab2, dev_tab3 = st.tabs(["Model & Metrics", "Forecast Internals", "Data"])
+        
+        with dev_tab1:
+            st.subheader("Model Performance")
+            # Build a performance dataframe
+            perf_rows = []
+            for model_key, metrics in self.model_performance.items():
+                perf_rows.append({
+                    'Model': model_key,
+                    'R²': metrics.get('R2', 0.0),
+                    'RMSE (ton)': metrics.get('RMSE', 0.0),
+                    'MAE (ton)': metrics.get('MAE', 0.0),
+                })
+            if perf_rows:
+                perf_df = pd.DataFrame(perf_rows).sort_values('R²', ascending=False)
+                st.dataframe(
+                    perf_df.style.format({
+                        'R²': '{:.3f}',
+                        'RMSE (ton)': '{:,.0f}',
+                        'MAE (ton)': '{:,.0f}',
+                    }),
+                    width='stretch'
+                )
+            else:
+                st.info("No model performance data available.")
+            
+            # Ensemble summary if present
+            ensemble = self.forecasts.get('ensemble_Produksi_ton', {})
+            if ensemble and 'metrics' in ensemble:
+                em = ensemble['metrics']
+                st.markdown(f"**Ensemble R²:** {em.get('R2', 0):.3f}")
+                st.markdown(f"**Ensemble RMSE:** {em.get('RMSE', 0):,.0f} tons")
+                st.markdown(f"**Ensemble MAE:** {em.get('MAE', 0):,.0f} tons")
+        
+        with dev_tab2:
+            st.subheader("Forecast Visuals & Internals")
+            best_model_name = getattr(self, 'best_model_key', 'Ensemble')
+            best_forecast = self.get_best_forecast_data()
+            if best_forecast:
+                # Comprehensive charts
+                self.create_comprehensive_forecast_analysis(best_forecast, best_model_name)
+            else:
+                st.warning("Best forecast data not available.")
+            
+            st.markdown("Forecast Results (JSON)")
+            st.json(self.forecasts)
+        
+        with dev_tab3:
+            st.subheader("Raw Data")
+            data_choice = st.selectbox("Select dataset:", 
+                                       ["National Timeseries", "Provincial Data", "Forecast Results"])
+            if data_choice == "National Timeseries":
+                st.dataframe(self.national_data, width='stretch')
+            elif data_choice == "Provincial Data":
+                st.dataframe(self.provincial_data, width='stretch')
+            else:
+                st.json(self.forecasts)
 
 def main():
     """Main Streamlit application"""
@@ -882,40 +944,26 @@ def main():
     auto_refresh = st.sidebar.checkbox("Auto-refresh (every 5 min)", value=False)
     show_raw_data = st.sidebar.checkbox("Show raw data", value=False)
     
-    # Main content
-    monitor.create_overview_metrics()
+    # Role-based view selector
+    view_mode = st.sidebar.radio("View Mode", ["Executive", "Developer"], index=0)
     
-    st.markdown("---")
-    
-    # Create tabs for different sections
-    tab1, tab2, tab3, tab4 = st.tabs(["Trends", "Provincial", "Alerts", "Recommendations"])
-    
-    with tab1:
-        monitor.create_production_trends()
-    
-    with tab2:
-        monitor.create_provincial_analysis()
-    
-    with tab3:
-        monitor.create_alerts_system()
-    
-    with tab4:
-        monitor.create_recommendations()
-    
-    # Show raw data if requested
-    if show_raw_data:
+    if view_mode == "Executive":
+        # Executive view: KPIs, trends, alerts, recommendations
+        monitor.create_overview_metrics()  # Render header + KPI cards only once
         st.markdown("---")
-        st.subheader("Raw Data")
         
-        data_choice = st.selectbox("Select dataset:", 
-                                 ["National Timeseries", "Provincial Data", "Forecast Results"])
-        
-        if data_choice == "National Timeseries":
-            st.dataframe(monitor.national_data)
-        elif data_choice == "Provincial Data":
-            st.dataframe(monitor.provincial_data)
-        elif data_choice == "Forecast Results":
-            st.json(monitor.forecasts)
+        tab1, tab2, tab3, tab4 = st.tabs(["Trends", "Provincial", "Alerts", "Recommendations"])
+        with tab1:
+            monitor.create_production_trends()
+        with tab2:
+            monitor.create_provincial_analysis()
+        with tab3:
+            monitor.create_alerts_system()
+        with tab4:
+            monitor.create_recommendations()
+    else:
+        # Developer view
+        monitor.create_developer_dashboard()
     
     # Footer
     st.markdown("---")
